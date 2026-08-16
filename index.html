@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>獺郷太鼓連 お手本</title>
+<meta name="description" content="獺郷太鼓連の練習用お手本動画。曲と節をえらぶと、動画の該当の場所から再生できます。">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🥁</text></svg>">
+
+<style>
+/* ============================================================
+ * 獺郷太鼓連 お手本
+ * 印刷した譜面のQRコードから開くページ。スマホで見る前提。
+ * ============================================================ */
+
+:root {
+  --bg:       #fdf8f3;
+  --surface:  #ffffff;
+  --text:     #241f1b;
+  --muted:    #6d635a;
+  --line:     #e7dbcf;
+  --accent:   #c0392b;
+  --accent-tx:#ffffff;
+  --chip:     #fbf1e8;
+  --chip-line:#e0cdb9;
+  --shadow:   0 1px 2px rgba(60,40,20,.06), 0 4px 16px rgba(60,40,20,.05);
+  --radius:   14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:       #17140f;
+    --surface:  #211d17;
+    --text:     #f2ebe2;
+    --muted:    #a79c8f;
+    --line:     #3a332a;
+    --accent:   #e8705f;
+    --accent-tx:#1a1410;
+    --chip:     #2b251d;
+    --chip-line:#463d31;
+    --shadow:   0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  padding: 0 16px 64px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Hiragino Sans",
+               "Hiragino Kaku Gothic ProN", "BIZ UDPGothic",
+               "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+  /* スマホでタップしたときの青いハイライトを消す */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wrap { max-width: 560px; margin: 0 auto; }
+
+/* ---------------- 見出し ---------------- */
+header {
+  padding: 32px 4px 20px;
+  text-align: center;
+}
+.ren {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: .18em;
+  color: var(--muted);
+}
+h1 {
+  margin: 4px 0 0;
+  font-size: 30px;
+  letter-spacing: .1em;
+  font-weight: 700;
+}
+.lead {
+  margin: 14px 0 0;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+/* ---------------- お知らせ（動画が未公開のあいだ） ---------------- */
+.notice {
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--chip-line);
+  border-radius: var(--radius);
+  background: var(--chip);
+  font-size: 14px;
+  color: var(--muted);
+}
+.notice[hidden] { display: none; }
+
+/* ---------------- 曲（開いたり閉じたりする） ---------------- */
+.song {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+/* summary は display:list-item のままにする。
+   flex を直接掛けると list-item でなくなり、Chrome が
+   「開閉できる要素」という意味づけを落として読み上げに出なくなる。
+   並べたい中身は中の .summary-row 側で flex にする。 */
+.song > summary {
+  display: list-item;
+  list-style: none;
+  padding: 20px;
+  font-size: 22px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+}
+.song > summary::marker { content: ''; }
+/* Safari の三角を消す */
+.song > summary::-webkit-details-marker { display: none; }
+
+.summary-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.song > summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+/* 右端の ▼。開くと回る */
+.caret {
+  margin-left: auto;
+  flex: none;
+  width: 22px; height: 22px;
+  color: var(--muted);
+  transition: transform .18s ease;
+}
+.song[open] .caret { transform: rotate(180deg); }
+
+.song-hint {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.song-body {
+  padding: 0 20px 8px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---------------- ①〜⑥ の行 ---------------- */
+.sec {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.sec:last-child { border-bottom: none; }
+
+.sec-name {
+  flex: 1 1 8em;
+  min-width: 8em;
+  font-size: 18px;
+  font-weight: 700;
+}
+.sec-num {
+  color: var(--accent);
+  margin-right: 2px;
+}
+
+/* ---------------- 動画へのボタン ---------------- */
+.parts { display: flex; gap: 8px; flex: none; }
+
+.go {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--chip-line);
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .12s ease, border-color .12s ease;
+}
+.go:hover { background: var(--surface); border-color: var(--accent); }
+.go:active { transform: translateY(1px); }
+.go:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.go .play {
+  width: 15px; height: 15px;
+  flex: none;
+  color: var(--accent);
+}
+
+/* まだ動画が無いところ。押せないことが見て分かるようにする */
+.go.off {
+  background: transparent;
+  border-style: dashed;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+.go.off:hover { border-color: var(--chip-line); background: transparent; }
+.go.off .play { display: none; }
+
+/* ---------------- 通し ---------------- */
+.full {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 0 20px;
+  border-top: 2px solid var(--line);
+}
+.full-name { flex: 1 1 10em; font-size: 17px; font-weight: 700; }
+.full-name small {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.full .go {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-tx);
+}
+.full .go .play { color: currentColor; }
+.full .go:hover { background: var(--accent); filter: brightness(1.08); }
+.full .go.off {
+  background: transparent;
+  border-color: var(--chip-line);
+  color: var(--muted);
+}
+.full .go.off:hover { filter: none; }
+
+footer {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+/* どの版を見ているかの目印。控えめに */
+.ver {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: .6;
+}
+
+/* 画面が狭いとき、ボタンを名前の下へ回す */
+@media (max-width: 400px) {
+  .sec-name { flex-basis: 100%; }
+  .parts { width: 100%; }
+  .go { flex: 1; }
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="ren">獺郷太鼓連</p>
+    <h1>お手本</h1>
+    <p class="lead">見たいところをえらぶと、動画のその場面から始まります。</p>
+  </header>
+
+  <p class="notice" id="notice" hidden></p>
+
+  <main id="songs"></main>
+
+  <footer>獺郷太鼓連<span class="ver" id="ver"></span></footer>
+
+</div>
+
+<script>
+/* ============================================================
+ * ★ここだけ直せば中身が変わります
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ * 1) 動画。YouTube の ID を書きます
+ *
+ *    URL が https://youtu.be/AbCdEfGh123 なら、ID は AbCdEfGh123
+ *    （https://www.youtube.com/watch?v=AbCdEfGh123 の v= のうしろも同じ）
+ *
+ *    限定公開（Unlisted）でOK。URL を知っている人は誰でも見られます。
+ *    ※「非公開（Private）」にすると本人しか見られないので注意
+ *
+ *    id が '' のあいだは、そのボタンは押せない見た目になります。
+ * ------------------------------------------------------------ */
+/* ページ下に小さく出る版の表示。中身を直したらここの日付を変えます。
+   「直したのに変わらない」とき、ブラウザが古い版を見ているのかを
+   目で確かめられるようにするためのものです。 */
+var VERSION = '2026-08-16 b';
+
+var VIDEOS = {
+  /* 小太鼓・大太鼓・通しを1本につないだもの（全10分50秒）。
+     中身の並びは 小太鼓 0:00〜 / 大太鼓 2:44〜 / 通し 6:31〜 */
+  otehon: { id: 'Ej1aBPrE3qo', note: '屋台囃子 お手本（10分50秒）' }
+};
+
+/* ------------------------------------------------------------
+ * 2) パート。ボタンの並び順はこの順番になります
+ *
+ *    key   … 下の SONGS の at で使う名前
+ *    video … どの動画を見るか（上の VIDEOS の名前）
+ *
+ *    いまは1本の動画の中に全部入っているので video は同じですが、
+ *    パートごとに別の動画にしたくなったら video を変えるだけです。
+ * ------------------------------------------------------------ */
+var PARTS = [
+  { key: 'kodaiko', video: 'otehon', label: '小太鼓' },
+  { key: 'odaiko',  video: 'otehon', label: '大太鼓' }
+];
+
+/* ------------------------------------------------------------
+ * 3) 曲と節
+ *
+ *    at は「動画の頭から何秒のところか」。動画1本の中の位置なので、
+ *    大太鼓は 2分44秒（164秒）を足した数になっています。
+ *    動画をつなぎ直したら、ここの数字も直します。
+ *
+ *    ここの数字は YouTube の説明欄のチャプター（youtube-説明欄.txt）と
+ *    同じにしてあります。**片方だけ直すとずれます。**
+ *
+ *    曲を増やすときは、この配列に同じ形のものを足すだけです。
+ * ------------------------------------------------------------ */
+var SONGS = [
+  {
+    name: '屋台囃子',
+    hint: '①〜⑥ のどこから見るかえらべます',
+    sections: [
+      /*                          小太鼓 0:00〜      大太鼓 2:44〜   */
+      { num: '①', name: 'ぶっつけ', at: { kodaiko:   0, odaiko: 164 } },
+      { num: '②', name: '地',       at: { kodaiko:  18, odaiko: 183 } },
+      { num: '③', name: 'かえ違い', at: { kodaiko:  34, odaiko: 262 } },
+      { num: '④', name: '乱拍子',   at: { kodaiko:  62, odaiko: 290 } },
+      { num: '⑤', name: '刻み',     at: { kodaiko: 118, odaiko: 343 } },
+      /* ⑥だけ実際の頭より3秒early。⑥切りは8秒しかなく、YouTubeの
+         「全チャプター10秒以上」を満たさないため章の側を早めてある。
+         ボタンもそこに合わせて、章の境目にぴったり飛ぶようにしている */
+      { num: '⑥', name: '切り',     at: { kodaiko: 153, odaiko: 380 } }
+    ],
+    /* 通し。同じ動画の 6分31秒（391秒）から。いらない曲では消してかまいません */
+    full: { video: 'otehon', at: 391, label: '通しで見る', note: 'さいしょから おわりまで' }
+  }
+];
+
+/* ============================================================
+ * ここから下は、ふだん直しません
+ * ============================================================ */
+(function () {
+  'use strict';
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  /* アイコンは画像ファイルにせず、その場で描く（読み込みを待たせない） */
+  function icon(cls, d) {
+    var s = document.createElementNS(SVGNS, 'svg');
+    s.setAttribute('viewBox', '0 0 24 24');
+    s.setAttribute('aria-hidden', 'true');
+    s.setAttribute('focusable', 'false');
+    s.setAttribute('class', cls);
+    var p = document.createElementNS(SVGNS, 'path');
+    p.setAttribute('d', d);
+    p.setAttribute('fill', 'currentColor');
+    s.appendChild(p);
+    return s;
+  }
+  function playIcon() { return icon('play', 'M8 5v14l11-7z'); }
+  function caretIcon() { return icon('caret', 'M7 10l5 5 5-5z'); }
+
+  /* 動画があるか。ID が空のあいだは「準備中」にする */
+  function ready(key) {
+    return !!(VIDEOS[key] && VIDEOS[key].id);
+  }
+
+  /* YouTube の「◯秒から再生」の URL。
+     説明欄のチャプターと同じ時刻を指すので、飛んだ先で
+     その章が選ばれた状態になる。 */
+  function urlAt(key, sec) {
+    var id = VIDEOS[key].id;
+    return 'https://www.youtube.com/watch?v=' + id
+         + (sec > 0 ? '&t=' + Math.floor(sec) + 's' : '');
+  }
+
+  function mmss(sec) {
+    var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  /* 動画へ飛ぶボタン。まだ動画が無ければ、押せない見た目の span を返す */
+  function goButton(videoKey, label, sec, aria) {
+    if (!ready(videoKey)) {
+      var off = el('span', 'go off', label);
+      off.setAttribute('role', 'link');
+      off.setAttribute('aria-disabled', 'true');
+      /* どれが準備中なのかを読み上げにも出す。
+         title だけだと全部「準備中です」としか読まれない */
+      off.setAttribute('aria-label', aria + '（準備中）');
+      off.title = '準備中です';
+      return off;
+    }
+    var a = el('a', 'go');
+    a.href = urlAt(videoKey, sec);
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.appendChild(playIcon());
+    a.appendChild(el('span', null, label));
+    a.setAttribute('aria-label', aria);
+    return a;
+  }
+
+  function renderSection(s) {
+    var row = el('div', 'sec');
+
+    var name = el('div', 'sec-name');
+    name.appendChild(el('span', 'sec-num', s.num));
+    name.appendChild(el('span', null, s.name));
+    row.appendChild(name);
+
+    var parts = el('div', 'parts');
+    PARTS.forEach(function (p) {
+      var sec = s.at[p.key];
+      /* その節にそのパートが無いときは、ボタンを出さない */
+      if (sec == null) return;
+      parts.appendChild(goButton(
+        p.video, p.label, sec,
+        s.num + s.name + '　' + p.label + '　' + mmss(sec) + 'から再生'
+      ));
+    });
+    row.appendChild(parts);
+
+    return row;
+  }
+
+  function renderSong(song) {
+    var d = el('details', 'song');
+
+    var sm = el('summary');
+    var row = el('span', 'summary-row');
+    row.appendChild(el('span', null, song.name));
+    if (song.hint) row.appendChild(el('span', 'song-hint', song.hint));
+    row.appendChild(caretIcon());
+    sm.appendChild(row);
+    d.appendChild(sm);
+
+    var body = el('div', 'song-body');
+    song.sections.forEach(function (s) { body.appendChild(renderSection(s)); });
+
+    if (song.full) {
+      var f = el('div', 'full');
+      var fname = el('div', 'full-name');
+      fname.appendChild(el('span', null, song.name + '　通し'));
+      if (song.full.note) fname.appendChild(el('small', null, song.full.note));
+      f.appendChild(fname);
+      f.appendChild(goButton(
+        song.full.video, song.full.label, song.full.at || 0,
+        song.name + '　通しで見る'
+      ));
+      body.appendChild(f);
+    }
+
+    d.appendChild(body);
+    return d;
+  }
+
+  /* まだ用意できていない動画があれば、上に一言出す。
+     ボタンだけ押せないと「壊れている」と思われるため */
+  function renderNotice() {
+    var pending = Object.keys(VIDEOS).filter(function (k) { return !ready(k); });
+    var n = document.getElementById('notice');
+    if (!pending.length) { n.hidden = true; return; }
+
+    n.hidden = false;
+    n.textContent = (pending.length === Object.keys(VIDEOS).length)
+      ? '動画はいま準備中です。用意ができしだい、ここから見られるようになります。'
+      : '点線のボタンは、まだ動画の準備中です。';
+  }
+
+  var root = document.getElementById('songs');
+  SONGS.forEach(function (song) { root.appendChild(renderSong(song)); });
+  renderNotice();
+
+  var ver = document.getElementById('ver');
+  if (ver) ver.textContent = VERSION;
+})();
+</script>
+</body>
+</html>

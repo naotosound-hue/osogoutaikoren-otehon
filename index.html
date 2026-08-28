@@ -310,12 +310,16 @@ footer {
 /* ページ下に小さく出る版の表示。中身を直したらここの日付を変えます。
    「直したのに変わらない」とき、ブラウザが古い版を見ているのかを
    目で確かめられるようにするためのものです。 */
-var VERSION = '2026-08-16 b';
+var VERSION = '2026-08-28';
 
 var VIDEOS = {
   /* 小太鼓・大太鼓・通しを1本につないだもの（全10分50秒）。
      中身の並びは 小太鼓 0:00〜 / 大太鼓 2:44〜 / 通し 6:31〜 */
-  otehon: { id: 'Ej1aBPrE3qo', note: '屋台囃子 お手本（10分50秒）' }
+  otehon: { id: 'Ej1aBPrE3qo', note: '屋台囃子 お手本（10分50秒）' },
+
+  /* カマクラ・シチョウメ（全8分04秒）。
+     中身の並びは 小太鼓 0:00〜 / 大太鼓 2:54〜 / 通し 5:39〜 */
+  kamakura: { id: 'MwfvVvIy2yA', note: 'カマクラ・シチョウメ お手本（8分04秒）' }
 };
 
 /* ------------------------------------------------------------
@@ -324,8 +328,9 @@ var VIDEOS = {
  *    key   … 下の SONGS の at で使う名前
  *    video … どの動画を見るか（上の VIDEOS の名前）
  *
- *    いまは1本の動画の中に全部入っているので video は同じですが、
- *    パートごとに別の動画にしたくなったら video を変えるだけです。
+ *    video はこの曲の既定です。**曲ごとに別の動画を使うときは、
+ *    下の SONGS にその曲の video を書けば、そちらが優先されます。**
+ *    （カマクラ・シチョウメがそうしています）
  * ------------------------------------------------------------ */
 var PARTS = [
   { key: 'kodaiko', video: 'otehon', label: '小太鼓' },
@@ -362,6 +367,33 @@ var SONGS = [
     ],
     /* 通し。同じ動画の 6分31秒（391秒）から。いらない曲では消してかまいません */
     full: { video: 'otehon', at: 391, label: '通しで見る', note: 'さいしょから おわりまで' }
+  },
+
+  {
+    name: 'カマクラ・シチョウメ',
+    hint: 'カマクラ / シチョウメ / きり からえらべます',
+    /* ★この曲だけ別の動画。ここに書くと PARTS の video より優先されます */
+    video: 'kamakura',
+    /* この曲は ①〜⑥ のような番号を使いません（譜面も番号をやめたため）。
+       num を書かなければ、名前だけが出ます。
+
+       小太鼓は 1本の流れを ぶっつけ→地→あがり→（シチョウメの）地→タマ→きり と
+       撮ってあるので、節の頭から押すとそのまま先へ続けて見られます。
+         ・カマクラ  小太鼓 0:00  … ぶっつけ→地→あがり
+         ・シチョウメ 小太鼓 1:07  … 地→タマ（あがりの直後がシチョウメの地）
+         ・きり     小太鼓 2:33
+       大太鼓は 節ごとに 1本ずつ撮ってある。
+
+       ★ここの秒数は youtube-説明欄-カマクラシチョウメ.txt の章と同じ。
+         片方だけ直すとずれます。 */
+    sections: [
+      /*                       小太鼓 0:00〜      大太鼓 2:54〜   */
+      { name: 'カマクラ',   at: { kodaiko:   0, odaiko: 174 } },
+      { name: 'シチョウメ', at: { kodaiko:  67, odaiko: 239 } },
+      { name: 'きり',       at: { kodaiko: 153, odaiko: 321 } }
+    ],
+    /* 通し。同じ動画の 5分39秒（339秒）から */
+    full: { video: 'kamakura', at: 339, label: '通しで見る', note: 'さいしょから おわりまで' }
   }
 ];
 
@@ -437,11 +469,12 @@ var SONGS = [
     return a;
   }
 
-  function renderSection(s) {
+  function renderSection(s, song) {
     var row = el('div', 'sec');
 
     var name = el('div', 'sec-name');
-    name.appendChild(el('span', 'sec-num', s.num));
+    /* 番号を使わない曲もある。空の span を作ると余白だけ残るので作らない */
+    if (s.num) name.appendChild(el('span', 'sec-num', s.num));
     name.appendChild(el('span', null, s.name));
     row.appendChild(name);
 
@@ -450,9 +483,10 @@ var SONGS = [
       var sec = s.at[p.key];
       /* その節にそのパートが無いときは、ボタンを出さない */
       if (sec == null) return;
+      /* 曲に video が書いてあれば、そちらを使う（曲ごとに動画が違う場合） */
       parts.appendChild(goButton(
-        p.video, p.label, sec,
-        s.num + s.name + '　' + p.label + '　' + mmss(sec) + 'から再生'
+        (song && song.video) || p.video, p.label, sec,
+        (s.num || '') + s.name + '　' + p.label + '　' + mmss(sec) + 'から再生'
       ));
     });
     row.appendChild(parts);
@@ -472,7 +506,7 @@ var SONGS = [
     d.appendChild(sm);
 
     var body = el('div', 'song-body');
-    song.sections.forEach(function (s) { body.appendChild(renderSection(s)); });
+    song.sections.forEach(function (s) { body.appendChild(renderSection(s, song)); });
 
     if (song.full) {
       var f = el('div', 'full');

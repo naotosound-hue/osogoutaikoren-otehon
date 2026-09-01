@@ -231,6 +231,9 @@ h1 {
   border-top: 2px solid var(--line);
 }
 .full-name { flex: 1 1 10em; font-size: 17px; font-weight: 700; }
+
+/* 譜面プリントの行。通しの行と見分けがつくよう、区切りを点線にする */
+.print-row { border-top-style: dashed; padding-top: 14px; }
 .full-name small {
   display: block;
   font-size: 13px;
@@ -310,7 +313,7 @@ footer {
 /* ページ下に小さく出る版の表示。中身を直したらここの日付を変えます。
    「直したのに変わらない」とき、ブラウザが古い版を見ているのかを
    目で確かめられるようにするためのものです。 */
-var VERSION = '2026-08-28';
+var VERSION = '2026-09-01';
 
 var VIDEOS = {
   /* 小太鼓・大太鼓・通しを1本につないだもの（全10分50秒）。
@@ -349,6 +352,29 @@ var PARTS = [
  *
  *    曲を増やすときは、この配列に同じ形のものを足すだけです。
  * ------------------------------------------------------------ */
+/* ------------------------------------------------------------
+ * 4) 譜面プリント
+ *
+ *    曲の `print.url` に、譜面メーカーの置き場所を書きます。
+ *    このページと同じところに置いてあるので `yatai/` のような
+ *    相対パスでOK（公開先が変わってもついてきます）。
+ *
+ *    飛び先は **PDFではなく譜面メーカーのページ**です。
+ *    PDFだと中身を書き換えられないため。ページなら
+ *      ・そのまま「印刷 / PDF」で 元のプリントを刷る
+ *      ・文章を書き換えて 自分専用にしてから刷る
+ *      ・「文章をもどす」で 元にもどす
+ *    が全部できます。
+ *
+ *    ★書き換えは、その人の端末の中（localStorage）だけに残ります。
+ *      サーバーには送られないので、**誰かが消しても他の人には影響しません。**
+ * ------------------------------------------------------------ */
+/* ★「2枚」と書かない。実際は**両面印刷で1枚**にして配っている。
+     片面で刷る人もいるので「2ページ」と両方を書く。 */
+var PRINT_NOTE = 'A4横2ページ（両面印刷で1枚に収まります）。'
+               + 'スマホでも見られますが、画面の大きさの関係で文字が小さくなるので、'
+               + 'パソコンを推奨します。';
+
 var SONGS = [
   {
     name: '屋台囃子',
@@ -366,7 +392,9 @@ var SONGS = [
       { num: '⑥', name: '切り',     at: { kodaiko: 153, odaiko: 380 } }
     ],
     /* 通し。同じ動画の 6分31秒（391秒）から。いらない曲では消してかまいません */
-    full: { video: 'otehon', at: 391, label: '通しで見る', note: 'さいしょから おわりまで' }
+    full: { video: 'otehon', at: 391, label: '通しで見る', note: 'さいしょから おわりまで' },
+    /* 譜面プリント。このページと同じ場所に置いてある譜面メーカーへ */
+    print: { url: 'yatai/' }
   },
 
   {
@@ -393,7 +421,9 @@ var SONGS = [
       { name: 'きり',       at: { kodaiko: 153, odaiko: 321 } }
     ],
     /* 通し。同じ動画の 5分39秒（339秒）から */
-    full: { video: 'kamakura', at: 339, label: '通しで見る', note: 'さいしょから おわりまで' }
+    full: { video: 'kamakura', at: 339, label: '通しで見る', note: 'さいしょから おわりまで' },
+    /* 譜面プリント */
+    print: { url: 'kamakura/' }
   }
 ];
 
@@ -426,6 +456,11 @@ var SONGS = [
     return s;
   }
   function playIcon() { return icon('play', 'M8 5v14l11-7z'); }
+  /* 譜面プリントのボタン。プリンターの絵 */
+  function printIcon() {
+    return icon('play', 'M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 '
+                      + '11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z');
+  }
   function caretIcon() { return icon('caret', 'M7 10l5 5 5-5z'); }
 
   /* 動画があるか。ID が空のあいだは「準備中」にする */
@@ -519,6 +554,27 @@ var SONGS = [
         song.name + '　通しで見る'
       ));
       body.appendChild(f);
+    }
+
+    /* ---- 譜面プリント ----
+       動画ではなくページへ飛ぶので goButton は使わない（準備中の作りが要らない） */
+    if (song.print) {
+      var p = el('div', 'full print-row');
+      var pname = el('div', 'full-name');
+      pname.appendChild(el('span', null, song.name + '　譜面プリント'));
+      pname.appendChild(el('small', null, PRINT_NOTE));
+      p.appendChild(pname);
+
+      var pa = el('a', 'go');
+      pa.href = song.print.url;
+      pa.target = '_blank';
+      pa.rel = 'noopener';
+      pa.appendChild(printIcon());
+      pa.appendChild(el('span', null, song.print.label || '譜面をひらく'));
+      pa.setAttribute('aria-label', song.name + '　譜面プリントをひらく');
+      p.appendChild(pa);
+
+      body.appendChild(p);
     }
 
     d.appendChild(body);

@@ -145,13 +145,24 @@ h1 {
   color: var(--muted);
   transition: transform .18s ease;
 }
-.song[open] .caret { transform: rotate(180deg); }
+/* ★ `>` が要る。曲の中にもう1つ開閉（篠笛）を入れたので、
+   子孫まで効く書き方だと、外側を開いただけで中の▼まで回ってしまう */
+.song[open] > summary .caret { transform: rotate(180deg); }
 
 .song-hint {
   font-size: 13px;
   font-weight: 400;
   color: var(--muted);
 }
+
+/* ---- 曲の中にぶら下げる開閉（屋台囃子の篠笛）----
+   外側と同じ「押すと開く」形。一回り小さくして、中のものだと分かるようにする */
+.song.sub {
+  box-shadow: none;
+  margin: 4px 0 16px;
+}
+.song.sub > summary { padding: 16px; font-size: 19px; }
+.song.sub > .song-body { padding: 0 16px 4px; }
 
 .song-body {
   padding: 0 20px 8px;
@@ -313,12 +324,16 @@ footer {
 /* ページ下に小さく出る版の表示。中身を直したらここの日付を変えます。
    「直したのに変わらない」とき、ブラウザが古い版を見ているのかを
    目で確かめられるようにするためのものです。 */
-var VERSION = '2026-09-01';
+var VERSION = '2026-09-09';
 
 var VIDEOS = {
   /* 小太鼓・大太鼓・通しを1本につないだもの（全10分50秒）。
      中身の並びは 小太鼓 0:00〜 / 大太鼓 2:44〜 / 通し 6:31〜 */
   otehon: { id: 'Ej1aBPrE3qo', note: '屋台囃子 お手本（10分50秒）' },
+
+  /* 篠笛の通しを2本つないだもの（全8分09秒）。
+     中身の並びは 4本調子 0:00〜 / 6本調子 4:20〜 */
+  fue: { id: 'QGTeWY22lCI', note: '屋台囃子 篠笛 通し（8分09秒）' },
 
   /* カマクラ・シチョウメ（全8分04秒）。
      中身の並びは 小太鼓 0:00〜 / 大太鼓 2:54〜 / 通し 5:39〜 */
@@ -393,6 +408,35 @@ var SONGS = [
     ],
     /* 通し。同じ動画の 6分31秒（391秒）から。いらない曲では消してかまいません */
     full: { video: 'otehon', at: 391, label: '通しで見る', note: 'さいしょから おわりまで' },
+
+    /* 篠笛。太鼓とは別の動画なので、**まるごと畳んだ開閉**にして
+       「譜面プリント」の下にぶら下げる（下の extras）。押すと屋台囃子と同じように開く。
+       ★ここの秒数は篠笛の動画の説明欄のチャプターと同じ。片方だけ直すとずれます。
+       ★笛には太鼓の②「地」にあたる節が無いので、節は5つ。番号は付けない
+         （②が抜けた ①③④⑤⑥ になって、かえって分かりにくいため）。
+       ★節の名前は動画に出るテロップと同じ字にしてある（太鼓側は「かえ違い」、
+         笛の動画は「かえ違え」）。 */
+    extras: [
+      {
+        name: '４と６本調子　篠笛',
+        hint: '4本調子 / 6本調子 からえらべます',
+        video: 'fue',
+        parts: [
+          { key: 'fue4', label: '4本調子' },
+          { key: 'fue6', label: '6本調子' }
+        ],
+        full: { at: 0, label: '通しで見る', note: '4本調子 → 6本調子 の順に つづけて' },
+        sections: [
+          /*                        4本調子 0:00〜     6本調子 4:20〜 */
+          { name: 'ぶっつけ', at: { fue4:   0, fue6: 260 } },
+          { name: 'かえ違え', at: { fue4:  38, fue6: 290 } },
+          { name: '乱拍子',   at: { fue4:  92, fue6: 339 } },
+          { name: '刻み',     at: { fue4: 166, fue6: 409 } },
+          { name: '切り',     at: { fue4: 237, fue6: 470 } }
+        ]
+      }
+    ],
+
     /* 譜面プリント。このページと同じ場所に置いてある譜面メーカーへ */
     print: { url: 'yatai/' }
   },
@@ -575,6 +619,65 @@ var SONGS = [
       p.appendChild(pa);
 
       body.appendChild(p);
+    }
+
+    /* ---- 曲の中の、もう1つの開閉（篠笛）----
+       同じ曲でも動画が別なので、まるごと畳んで譜面プリントの下に置く。
+       押すと外側の曲と同じように開く。 */
+    if (song.extras) {
+      song.extras.forEach(function (ex) { body.appendChild(renderExtra(ex)); });
+    }
+
+    d.appendChild(body);
+    return d;
+  }
+
+  /* 曲の中にぶら下げる開閉。中身の作りは曲と同じ（節の行 → 通しの行）だが、
+     parts も動画もこの組の中だけで完結する */
+  function renderExtra(ex) {
+    var d = el('details', 'song sub');
+
+    var sm = el('summary');
+    var row = el('span', 'summary-row');
+    row.appendChild(el('span', null, ex.name));
+    if (ex.hint) row.appendChild(el('span', 'song-hint', ex.hint));
+    row.appendChild(caretIcon());
+    sm.appendChild(row);
+    d.appendChild(sm);
+
+    var body = el('div', 'song-body');
+
+    (ex.sections || []).forEach(function (s) {
+      var r = el('div', 'sec');
+      var nm = el('div', 'sec-name');
+      if (s.num) nm.appendChild(el('span', 'sec-num', s.num));
+      nm.appendChild(el('span', null, s.name));
+      r.appendChild(nm);
+
+      var parts = el('div', 'parts');
+      ex.parts.forEach(function (p) {
+        var sec = s.at[p.key];
+        if (sec == null) return;
+        parts.appendChild(goButton(
+          ex.video, p.label, sec,
+          ex.name + '　' + s.name + '　' + p.label + '　' + mmss(sec) + 'から再生'
+        ));
+      });
+      r.appendChild(parts);
+      body.appendChild(r);
+    });
+
+    if (ex.full) {
+      var f = el('div', 'full');
+      var fname = el('div', 'full-name');
+      fname.appendChild(el('span', null, ex.name + '　通し'));
+      if (ex.full.note) fname.appendChild(el('small', null, ex.full.note));
+      f.appendChild(fname);
+      f.appendChild(goButton(
+        ex.video, ex.full.label || '通しで見る', ex.full.at || 0,
+        ex.name + '　通しで見る'
+      ));
+      body.appendChild(f);
     }
 
     d.appendChild(body);

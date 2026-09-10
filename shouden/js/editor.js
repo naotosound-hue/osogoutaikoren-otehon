@@ -101,11 +101,19 @@
     return (key in state.texts) ? state.texts[key] : original;
   };
 
-  /** データの既定値 → 保存された編集内容 の順で上書き */
+  /** 左右の既定値 → データの既定値 → 保存された編集内容 の順で上書き
+   *
+   *  ★左右（●○）の既定値は data-hands.js（YH.HANDS）に入っている。
+   *    data-score-front.js の h: は **1語の1打目にしか効かない**ので、
+   *    2打目以降まで既定を持たせるにはこちらを見る必要がある。
+   *    キーは 打ちごと（セクション-列-語-打）。 */
   YH.getCellState = function (key, defaults) {
     var e = state.edits[key];
+    var base = (YH.HANDS && Object.prototype.hasOwnProperty.call(YH.HANDS, key))
+             ? YH.HANDS[key]
+             : (defaults.h || null);
     return {
-      h: e && 'h' in e ? e.h : (defaults.h || null),
+      h: e && 'h' in e ? e.h : base,
       a: e && 'a' in e ? e.a : !!defaults.a
     };
   };

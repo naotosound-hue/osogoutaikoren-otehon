@@ -19,6 +19,7 @@ set "DST=%~dp0"
 
 call :copyone yatai-hayashi-score      yatai
 call :copyone kamakura-shichoume-score kamakura
+call :copyone shouden-kandamaru-score  shouden
 rem 新囃子はまだ公開しません。公開するときは次の行の rem を外してください。
 rem call :copyone shin-hayashi-score    shin
 

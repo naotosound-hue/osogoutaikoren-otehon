@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>昇殿神田丸 譜面メーカー</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===== ツールバー（印刷では消えます） ===== -->
+<div class="toolbar">
+  <span class="tb-title">昇殿神田丸 譜面メーカー</span>
+
+  <button id="btn-edit" type="button" aria-pressed="true">編集中</button>
+  <button id="btn-mode" type="button">クリック：左右</button>
+  <button id="btn-beats" type="button" aria-pressed="false">打数</button>
+
+  <button id="btn-smaller" type="button">文字 −</button>
+  <button id="btn-bigger" type="button">文字 ＋</button>
+
+  <button id="btn-reset" type="button">編集をもどす</button>
+  <button id="btn-reset-text" type="button">文章をもどす</button>
+
+  <span class="tb-hint">文字をクリック → なし / ○左 / ●右　｜　右クリック（長押し）→ 利きバチ │</span>
+  <!-- 日付・URL・ページ番号はブラウザが勝手に足すもので、CSSでは消せない。
+       印刷ダイアログで外してもらうしかないので、押す前に目に入る場所に出す。 -->
+  <span class="tb-note" id="print-note">印刷するときは ダイアログの「詳細設定」→<strong>「ヘッダーとフッター」のチェックを外す</strong>と、日付・URL・ページ番号が消えます　｜　<strong>この譜面は1枚です</strong>（2026-09-10 に2枚目をやめました）</span>
+  <span class="saved" id="saved">保存しました</span>
+
+  <button id="btn-print" type="button" class="tb-print">印刷 / PDF</button>
+</div>
+
+<!-- 中身は js/app.js が入れます -->
+<div class="notice notice-warn" id="overflow" hidden></div>
+<div class="notice notice-info" id="fitted" hidden></div>
+
+<!-- ===== 用紙 ===== -->
+<div id="pages"></div>
+
+<!-- データ -->
+<script src="js/data-score-front.js"></script>
+<script src="js/data-guide.js"></script>
+<script src="js/data-back.js"></script>
+<script src="js/data-map.js"></script>
+<script src="js/data-legend.js"></script>
+<script src="js/data-qr.js"></script>
+<!-- 部品 -->
+<script src="js/editor.js"></script>
+<script src="js/render.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,772 @@
+/* ============================================================
+ * 昇殿神田丸 譜面メーカー — スタイル
+ * A4横 / 白黒印刷専用 / 2枚（1枚目＝縦書きの譜面、2枚目＝ガイド）
+ * 文字の大きさは --kana-size で一括調整。
+ * ============================================================ */
+
+:root {
+  /* 用紙（A4横 297×210 － 余白6mm） */
+  --page-w: 267mm;   /* 297 - 15*2 */
+  /* ★印刷可能領域は 180mm（210 - 15*2）だが、ぴったりだと丸め誤差で
+     空白のページが出ることがあるので 3mm 引いた値を用紙の高さとする。
+     **画面と印刷でこの値をそろえること。**
+     以前は画面 198mm ／ 印刷 195mm と食い違っていて、
+     画面では見えている枠の下線が、印刷では切れて消えていた。 */
+  --page-h: 177mm;   /* 210 - 15*2 - 3（下の安全代） */
+
+  /* 譜面の文字サイズ（ツールバーの − ＋ で変わる） */
+  --kana-size: 3.9mm; /* この大きさで全21列がA4横1枚に収まる
+                         （実測: 左8mm前後 / 右4.6mm / 下1.4mm。用紙の15mm余白の内側）。
+                         ★js/editor.js の DEFAULT_SIZE と同じ値にすること。
+
+                         ★この曲は**縦（列の長さ）が先に頭打ちになる**。
+                         --col-gap をいくら減らしても 3.9mm より上げられない。
+                         **大きくしたいなら、いちばん長い列を2つに分けるしかない。**
+
+                         いちばん長い列は【神田丸】2列目（12語・29文字）。
+                         これに --head-len（4.9em）が全列ぶん乗るので、
+                         実質 33.9文字ぶんの高さが要る。
+
+                         ここまでの経緯:
+                           4.7mm … 昇殿の2・3行目を2列ずつに分けた時点
+                           4.4mm … 「く」を前の語に書きかえて 26→29文字
+                           3.9mm … 小見出しを出して --head-len を 0→4.9em
+                           4.2mm … 届いた新しい神田丸で「く」が戻り 29→26文字
+                           3.9mm … 本人の指示で「く」の書きかえに戻した（26→29文字）
+                         屋台囃子・新囃子（4.0mm）とほぼ同じ大きさ。 */
+  --num-size: 7.2mm;  /* ①②③… を使う曲むけ。この曲では使っていない */
+
+  /* 譜面の組み（すべて --kana-size に対する比） */
+  --tok-gap: 0.7em;    /* 語と語のすきま（列の中） */
+  --col-gap: 1.25em;   /* 列と列のすきま。この曲は 21列＋まとまりの名前2列 ＝ 23列。
+                          新囃子（32列）より9列少ないので、0.28em まで詰める必要がない。
+                          **この曲は縦が先に頭打ち**なので、ここを減らしても
+                          文字は大きくならない（左が空くだけ）。
+                          いまは左が 8mm ほどになるところまで広げて紙を使い切っている
+                          （1.3em で左3.7mm、1.35em ではみ出す）。
+                          列を増やして赤い帯が「左へ」と出たら、ここを減らす。 */
+  --sec-gap: 0.4em;    /* 【昇殿】と【神田丸】の あいだ */
+  --head-len: 4.9em;   /* 列の頭（小見出し line.label）の場所の長さ。
+                          ★2026-09-03 に 0 から伸ばした。昇殿の1・2・6列目に
+                            ［ぶっつけ］［地］［あがり］を出すため
+                            （カマクラ・シチョウメと同じ 4.9em）。
+                          いちばん長い ［ぶっつけ］6文字 × --label-fs(0.76) が
+                          入る長さが要る。**見出しを長くしたらここも伸ばすこと。**
+                          ★ここを伸ばすと譜面の始まりが下がるので、
+                            いちばん長い列（【神田丸】2列目）が下からはみ出す。
+                            そのぶん文字を下げてある。 */
+  --num-at: 1.33em;    /* 番号（line.num）を 列の頭から何文字ぶん下に置くか。
+                          いまはどの列も番号を持たないので出番はない。
+                          使うときは まとまりの名前の2文字目と同じ高さに合わせる */
+  --label-fs: 0.76;    /* 小見出しの文字の大きさ（譜面の文字に対する比）。
+                          小さくするほど ［ぶっつけ］が短くなり、番号との
+                          すきまが広がる（--head-len を伸ばさずに済む） */
+  --acc-w: 0.28em;     /* │（利きバチ）の場所 */
+  --hand-w: 0.55em;    /* ●○（左右）の場所。.mk-hand の中で効くので、
+                          外から幅を計算するときは --hand-fs を掛けること */
+  --hand-fs: 0.6;      /* ●○ の文字の大きさ（語の文字に対する比） */
+
+  /* 譜面ブロックの右わきのすきま。
+     縦書きは右から始まるので、0 だと ① が用紙の右端に貼りつく。
+     ここを増やすと譜面全体が左へ寄り、そのぶん左の余白が減る。 */
+  --score-pad-right: 5mm;
+
+  /* タイトル（屋台囃子 譜面）の左のインデント。罫線は全幅のまま文字だけ右へ */
+  --title-indent: 4mm;
+
+  /* ポイント欄の「名前」の段の幅。いちばん長い「かえちがえ」が入る幅 */
+  --pt-name-w: 18mm;
+
+  /* 参考動画のQRコードの大きさ。1つだけ置くので大きく取れる
+     （3つ並べていたころは 34mm）。大きいほど読み取りやすい */
+  --qr-size: 40mm;
+
+  /* 2枚目の文字サイズ */
+  --side-size: calc(3.3mm * var(--guide-scale));
+
+  /* 2枚目（ガイド）の文字の倍率。
+     書体が違うと文章の折り返し行数が変わり、枠からあふれる機械がある。
+     app.js の fitGuide() が、収まるところまでこれを下げる。
+     ★2枚目の文字サイズは、すべてこの変数を掛けて書くこと。
+       掛け忘れた文字だけ縮まず、そこが原因であふれ続ける。 */
+  --guide-scale: 1;
+
+  --ink: #000;
+  --rule: #000;
+
+  /* 画面まわりの色。紙（.sheet）は印刷結果と同じに見せたいので
+     ダークテーマでも白のままにし、まわりだけ暗くする。 */
+  --ground: #5f5c55;        /* 作業台。少し茶をふくんだグレー */
+  --bar: #1e1b17;
+  --bar-ink: #f4f1ec;
+  --bar-line: #4a443c;
+  --btn: #2b2620;
+  --btn-hover: #39332b;
+  --accent: #b3462f;        /* 弁柄色。注意の帯だけに使う */
+  --warn-bg: #f7ddd6;
+  --warn-ink: #5c1d10;
+  --warn-line: #c99383;
+  --info-bg: #e8ecdf;
+  --info-ink: #2f3a24;
+  --info-line: #a9b493;
+  --sheet-edge: rgba(0, 0, 0, .45);
+  --ok: #8fd39a;
+
+  /* 手書きに近い日本語フォント（教科書体を優先） */
+  --font-jp:
+    "UD デジタル教科書体 NP-B", "UD デジタル教科書体 NP-R",
+    "UD Digi Kyokasho NP-B", "UD Digi Kyokasho NP-R",
+    "HGP教科書体", "HG教科書体", "游教科書体", "Yu Kyokasho",
+    "YuKyokasho Yoko", "BIZ UDPMincho", "Yu Mincho", serif;
+}
+
+/* 見る人のテーマに合わせる。トグルで付く data-theme が最優先。 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #22201c;
+    --bar: #15130f;
+    --bar-line: #3b352d;
+    --btn: #262119;
+    --btn-hover: #332d24;
+    --warn-bg: #4a1a10;
+    --warn-ink: #ffd9cf;
+    --warn-line: #8a4231;
+    --info-bg: #262b1e;
+    --info-ink: #dde5cd;
+    --info-line: #596343;
+    --sheet-edge: rgba(0, 0, 0, .75);
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #22201c;
+  --bar: #15130f;
+  --bar-line: #3b352d;
+  --btn: #262119;
+  --btn-hover: #332d24;
+  --warn-bg: #4a1a10;
+  --warn-ink: #ffd9cf;
+  --warn-line: #8a4231;
+  --info-bg: #262b1e;
+  --info-ink: #dde5cd;
+  --info-line: #596343;
+  --sheet-edge: rgba(0, 0, 0, .75);
+}
+:root[data-theme="light"] {
+  --ground: #5f5c55;
+  --bar: #1e1b17;
+  --bar-line: #4a443c;
+  --btn: #2b2620;
+  --btn-hover: #39332b;
+  --warn-bg: #f7ddd6;
+  --warn-ink: #5c1d10;
+  --warn-line: #c99383;
+  --info-bg: #e8ecdf;
+  --info-ink: #2f3a24;
+  --info-line: #a9b493;
+  --sheet-edge: rgba(0, 0, 0, .45);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-jp);
+  color: var(--ink);
+  background: var(--ground);
+}
+
+/* ============================================================
+ * ツールバー（画面だけ。印刷では消える）
+ * ============================================================ */
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bar);
+  color: var(--bar-ink);
+  font-family: "Meiryo", "Yu Gothic UI", sans-serif;
+  font-size: 13px;
+}
+
+.toolbar .tb-title { font-weight: 700; margin-right: 6px; letter-spacing: .04em; }
+
+.toolbar button {
+  font: inherit;
+  padding: 6px 12px;
+  border: 1px solid var(--bar-line);
+  border-radius: 6px;
+  background: var(--btn);
+  color: var(--bar-ink);
+  cursor: pointer;
+}
+.toolbar button:hover { background: var(--btn-hover); }
+.toolbar button:focus-visible { outline: 2px solid var(--bar-ink); outline-offset: 2px; }
+.toolbar button[aria-pressed="true"] {
+  background: var(--bar-ink); color: var(--bar); border-color: var(--bar-ink); font-weight: 700;
+}
+.toolbar .tb-print {
+  margin-left: auto;
+  background: var(--bar-ink); color: var(--bar); border-color: var(--bar-ink); font-weight: 700;
+}
+.toolbar .tb-hint { opacity: .72; font-size: 12px; }
+
+/* 印刷ダイアログの設定の案内。ツールバーなので印刷には出ない */
+.toolbar .tb-note {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--info-bg);
+  color: var(--info-ink);
+  border: 1px solid var(--info-line);
+}
+.toolbar .saved { opacity: 0; transition: opacity .2s; font-size: 12px; color: var(--ok); }
+.toolbar .saved.on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .toolbar .saved { transition: none; } }
+
+/* お知らせの帯（画面だけ）。
+   .notice-warn ＝ はみ出し（直す必要がある）
+   .notice-info ＝ 自動で文字を合わせた（知らせるだけ） */
+.notice {
+  padding: 9px 14px;
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  font-family: "Meiryo", "Yu Gothic UI", sans-serif;
+  font-size: 12.5px;
+  line-height: 1.6;
+  border-bottom: 1px solid var(--warn-line);
+  border-left: 4px solid var(--accent);
+}
+.notice-info {
+  background: var(--info-bg);
+  color: var(--info-ink);
+  border-bottom-color: var(--info-line);
+  border-left-color: var(--info-line);
+}
+
+.notice code {
+  background: rgba(127, 127, 127, .22); padding: 1px 5px; border-radius: 3px;
+  font-family: Consolas, monospace;
+}
+
+/* ============================================================
+ * 用紙
+ * ============================================================ */
+#pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 0 40px;
+}
+
+.sheet {
+  width: var(--page-w);
+  height: var(--page-h);
+  background: #fff;  /* 紙は印刷結果と同じに見せたいので、テーマに関わらず白 */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 18px var(--sheet-edge);
+}
+
+/* ---- タイトル ---- */
+.sheet-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 3.5mm;
+  padding: 0 0 1.2mm;
+  border-bottom: 0.6mm solid var(--rule);
+  margin-bottom: 2mm;
+}
+/* 譜面のタイトルだけ少し右へ。padding なので下の罫線は全幅のまま残る。
+   2枚目は枠が左端いっぱいに並ぶので、そろわなくなるから動かさない。 */
+.score-sheet .sheet-head { padding-inline-start: var(--title-indent); }
+
+.sheet-title { margin: 0; font-size: 6mm; letter-spacing: .18em; font-weight: 700; }
+.sheet-sub {
+  font-size: 3.4mm;
+  border: 0.35mm solid var(--rule);
+  border-radius: 1mm;
+  padding: 0.2mm 1.4mm;
+}
+
+/* ============================================================
+ * 1枚目：譜面（縦書き・右から左）
+ * ------------------------------------------------------------
+ * writing-mode: vertical-rl により
+ *   ・文字は上から下へ流れる
+ *   ・ブロック（＝列・セクション）は右から左へ並ぶ
+ * つまり HTML の並び順が、そのまま元のプリントの並び順になる。
+ * ============================================================ */
+.score-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  overflow: hidden;
+  /* 縦書きでは block-start＝右。① を用紙の右端から離す */
+  padding-block-start: var(--score-pad-right);
+  /* 右下の「参考動画」を絶対配置で置くための基準（2026-09-10） */
+  position: relative;
+}
+
+/* ---- 1枚目の右下：参考動画のQR＋左右の読みかた（2026-09-10）----
+ * 2枚目をやめたので、ここに移した。**昇殿の下のあき**に置く。
+ *
+ * ★絶対配置なのは、譜面の列の長さに数えさせないため。
+ *   流れに入れると fitToPage が「はみ出した」と見て文字を縮めてしまい、
+ *   **昇殿の譜面が小さくなる**（本人が「大きさは変えないで」と指定）。
+ * ★親は縦書きなので、ここで横書きに戻す。
+ * ★大きさは実測から決めてある（あき 78mm×37mm に対して 74mm×約32mm）。
+ *   「文字 ＋」で譜面を大きくすると昇殿の列が伸びてぶつかる。
+ *   ぶつかると赤い帯（はみ出し警告）が出る。 */
+.side-note {
+  position: absolute;
+  /* 絶対配置の基準は .score-area の**パディングの内側**。right:0 にすると
+     右の余白（--score-pad-right）まではみ出て、譜面の右端とそろわない */
+  right: var(--score-pad-right);
+  /* 用紙の下端に接しさせない。接すると .score-area の overflow:hidden の
+     境目でQRの最後の1列が削られることがある（2枚目で踏んだのと同じ話） */
+  bottom: 1.5mm;
+  width: 69mm;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
+}
+.sn-title {
+  font-size: 4.0mm;
+  font-weight: 700;
+  letter-spacing: .1em;
+  padding-bottom: 0.8mm;
+  margin-bottom: 1.6mm;
+  border-bottom: 0.4mm solid var(--rule);
+}
+.sn-row {
+  display: flex;
+  align-items: center;
+  gap: 5mm;
+}
+/* QRは正方形。大きいほど1マスが太くなり、スマホで読み取りやすい。
+   ★`.qr-frame` の width:var(--qr-size)（40mm・2枚目用）が
+     このあとに書いてあるので、**クラス2つぶんの強さで上書きする**。
+     `.sn-qr` だけだと同じ強さで、あとに書いてあるほうが勝って 40mm になる */
+.side-note .sn-qr {
+  width: 24mm;
+  height: 24mm;
+}
+/* 2枚目の説明欄と同じ見た目にするが、--guide-scale は掛けない
+   （2枚目が無いので、あの倍率に引きずられないようにする） */
+.sn-legend li {
+  font-size: 4.2mm;
+  margin-bottom: 1.6mm;
+}
+.sn-legend li:last-child { margin-bottom: 0; }
+
+/* 【ぶっつけ】などのまとまり。縦書きでは block-end＝左、block-start＝右 */
+.sec { margin-block-end: var(--sec-gap); }
+.sec:last-child { margin-block-end: 0; }
+/* 区切りの罫線は「まとまりとまとまりの間」＝各セクションの右わきに引く */
+.sec + .sec {
+  border-block-start: 0.3mm solid var(--rule);
+  padding-block-start: var(--sec-gap);
+}
+
+/* 【ぶっつけ】など、まとまりの名前の列 */
+.sec-head {
+  margin-block-end: calc(var(--col-gap) + 0.3em);
+  font-size: var(--kana-size);
+}
+.sec-num {
+  font-size: var(--num-size);
+  font-weight: 700;
+  line-height: 1;
+}
+.sec-name {
+  font-size: 1.15em;
+  font-weight: 700;
+  letter-spacing: .06em;
+  line-height: 1.02;
+}
+
+/* 列の頭 … 番号（line.num）と小見出し（line.label）を置く場所。
+   ★この曲はどちらも使っていないので --head-len: 0 で潰してある。
+   縦書きの列は flex の主軸が「上から下」なので、flex-basis が縦の長さになる。
+
+   ・小見出しは flex で下づめ（justify-content: flex-end）＝**譜面のすぐ上**
+   ・番号は流れから外して、上から --num-at の位置に固定
+     （まとまりの名前の2文字目と同じ高さ。小見出しの有無で高さが変わらない）
+   ・align-items: flex-start ＝ 交差軸は右づめ。列の右はしにそろう
+   ・番号も小見出しも無い列にも同じ場所を空けて、文字の始まる高さをそろえる */
+.line-head {
+  position: relative;
+  flex: 0 0 var(--head-len);
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+/* 縦書きでは inline 方向＝上から下。inset-inline-start が「上からの距離」、
+   inset-block-start: 0 が「右づめ」になる */
+.line-num {
+  position: absolute;
+  inset-inline-start: var(--num-at);
+  inset-block-start: 0;
+  font-weight: 700;
+  line-height: 1.02;
+}
+.line-label {
+  font-size: calc(var(--label-fs) * 1em);
+  letter-spacing: .04em;
+  line-height: 1.02;
+}
+
+/* ---- 列（＝元のプリントの1行） ---- */
+.line {
+  display: flex;            /* 縦書きでは主軸が「上から下」になる */
+  flex-direction: row;
+  align-items: flex-start;  /* 交差軸＝右づめ。文字の列がそろう */
+  gap: var(--tok-gap);
+  margin-block-end: var(--col-gap);
+  font-size: var(--kana-size);
+}
+/* 笛の列は少し小さく（小太鼓は叩かないので） */
+.line-fue { font-size: calc(var(--kana-size) * .86); }
+
+/* ---- セル（1語） ---- */
+.cell {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse; /* 文字を左、マークを右に置く */
+  align-items: flex-start;
+  line-height: 1.02;
+  /* ★これが無いと、列が用紙より長くなったとき
+     **はみ出さずに1文字ずつ縮む**（flex アイテムの既定は flex-shrink:1）。
+     縮んでも「はみ出し」にならないので、赤い帯も出ず、
+     app.js の自動縮小も働かないまま**文字だけ潰れた譜面が刷られる**。
+     0 にすると、ちゃんとはみ出して検知できる。 */
+  flex-shrink: 0;
+}
+.kana { display: block; }
+
+/* 印を置く帯。語の長さいっぱいに伸ばして、この中で位置を決める。
+   縦書きなので block-size＝横幅（＝印の場所の太さ）。 */
+.marks {
+  align-self: stretch;
+  position: relative;
+  flex: 0 0 auto;
+  /* ●○ は 0.6em の文字なので、その中の 0.55em は外から見ると 0.33em */
+  block-size: calc(var(--acc-w) + var(--hand-w) * var(--hand-fs));
+}
+
+/* 印1つ。--at は「語の頭から何文字ぶん下か」。
+   縦書きでは inline 方向＝上から下なので inset-inline-start で下げる。 */
+.mk {
+  position: absolute;
+  inset-inline-start: var(--at);
+  inset-block-start: 0;
+  display: flex;
+  flex-direction: column-reverse; /* 内側＝│、外側＝●○ */
+  align-items: flex-start;
+}
+
+/* 大太鼓は文字が小さいので、1文字ぶんの長さも縮める。
+   そうしないと印の位置が文字とずれる。 */
+.k-odaiko .marks,
+.k-odaiko .hits { font-size: 0.86em; }
+
+/* クリックを受ける透明の帯。文字の上にかぶせる。
+   --from から --span ぶんだけが、その印の受け持ち。 */
+.hits {
+  position: absolute;
+  inset: 0;
+}
+.hit {
+  position: absolute;
+  inset-inline-start: var(--from);
+  inline-size: var(--span);
+  inset-block: 0;
+}
+
+/* 利きバチ … 文字のすぐ右わきの縦棒。CSSで描くので印刷でも潰れない */
+.mk-acc { width: var(--acc-w); height: 1.15em; }
+.mk-acc.on { border-left: 0.13em solid currentColor; }
+
+/* 左右 … つねに同じ幅を確保して、列の位置がずれないようにする */
+.mk-hand {
+  width: var(--hand-w);
+  font-size: calc(var(--hand-fs) * 1em);
+  line-height: 1;
+}
+
+/* 打数（ツールバーの「打数」で表示） */
+.beat {
+  display: none;
+  font-size: 0.42em;
+  line-height: 1;
+  opacity: .8;
+  font-family: "Meiryo", sans-serif;
+}
+body.show-beats .beat { display: block; }
+body.show-beats .k-fue .beat,
+body.show-beats .k-odaiko .beat { display: none; }
+
+/* 笛・大太鼓・記号 */
+.k-fue .marks,
+.k-mark .marks { visibility: hidden; }
+.k-odaiko .kana { font-size: 0.86em; }
+.k-mark .kana { font-weight: 700; }
+
+/* ---- 編集中の見た目（画面だけ） ----
+   語ぜんたいではなく、押した印の受け持ち範囲だけを光らせる。
+   文字の上にかぶさるので、透けるうすい色にする。 */
+body.editing .hit { cursor: pointer; }
+body.editing .hit:hover { background: rgba(0, 0, 0, .10); }
+
+/* ============================================================
+ * 2枚目：ガイド（横書き）
+ * ============================================================ */
+.guide-body {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 4mm;
+  min-height: 0;
+  /* ★下に必ず余裕を作る。
+     ここが 0 だと、枠の下線が用紙(.sheet)の下端にぴったり重なる。
+     .sheet は overflow:hidden なので、境界にある 0.5mm の線は
+     まるめの具合で削られて消える（枠の下線が出ない、という形で出る）。
+     線を境界に置かないこと。 */
+  padding-bottom: 3mm;
+}
+.guide-col { display: flex; flex-direction: column; gap: 3mm; min-height: 0; }
+.guide-left { flex: 1 1 44%; }
+.guide-right { flex: 1 1 56%; }
+
+.box {
+  border: 0.5mm solid var(--rule);
+  border-radius: 1.4mm;
+  padding: 1.6mm 2mm 2mm;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.box-title {
+  margin: 0 0 1.4mm;
+  font-size: calc(4.2mm * var(--guide-scale));
+  letter-spacing: .12em;
+  text-align: center;
+  border-bottom: 0.3mm solid var(--rule);
+  padding-bottom: 0.7mm;
+}
+.box-body { font-size: var(--side-size); line-height: 1.5; }
+
+/* ---- えんそうのじゅんばん（左上 2/3）と 参考動画（左下 1/3） ----
+   じゅんばんはまだ決めていないので、いまは見出しだけの空の枠。
+   中身が入っても高さが変わらないよう、比だけ決めておく。 */
+.map-box { flex: 2 1 0; }
+.video-box { flex: 1 1 0; }
+
+.map-box .box-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* 図。枠の高さに合わせて縮む（viewBox で中身が付いてくる） */
+.mgraph {
+  display: block;
+  max-width: 100%;
+  height: 100%;
+}
+
+.mg-box {
+  fill: #fff;
+  stroke: var(--rule);
+  stroke-width: 0.8;
+}
+/* 中抜きの太い矢印（先へ進むながれ）。塗らずに線だけで描くので白黒でも潰れない */
+.mg-arrow {
+  fill: #fff;
+  stroke: var(--rule);
+  stroke-width: 0.7;
+  stroke-linejoin: round;
+}
+/* 細い線（くりかえし・枝分かれ・もどり） */
+.mg-line {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 0.9;
+}
+/* 点線の矢印（この図では「あいだに たま が入る」の意味） */
+.mg-dash { stroke-dasharray: 3 2.5; }
+
+/* 図の中の点線の切れ目（カマクラの図で使っていたもの。いまは未使用） */
+.mg-split {
+  stroke: var(--rule);
+  stroke-width: 0.6;
+  stroke-dasharray: 3 2.5;
+}
+.mg-head { fill: none; stroke: var(--rule); stroke-width: 1.6; }
+
+.mg-tx {
+  fill: var(--ink);
+  font-family: var(--font-jp);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.mg-tx-box { font-size: 5.5px; }
+
+/* 凡例の文字。★クラスを足したら、必ずここに font-size も足すこと。
+   SVG の text は指定が無いと既定（16単位）になり、viewBox の縮尺しだいで
+   とんでもない大きさで出る（実際に凡例が枠からあふれた）。 */
+.mg-tx-legend { font-size: 5px; }
+
+/* 図の左に置くまとまりの名前は縦書き。
+   SVG の text にも writing-mode が効く。text-orientation: upright を
+   付けないと 【 】 が横倒しのまま出る。
+   縦書きでは text-anchor が「上下ぞろえ」、dominant-baseline が「左右ぞろえ」。 */
+.mg-tx-v {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  text-anchor: start;
+  dominant-baseline: central;
+  font-size: 6px;
+  letter-spacing: 0.4px;
+}
+
+/* ---- 説明欄 ---- */
+.legend-box { flex: 0 0 auto; }
+.legend-list { list-style: none; margin: 0; padding: 0; }
+.legend-list li {
+  display: flex; align-items: baseline; gap: 1.4mm;
+  margin-bottom: 0.8mm; font-size: calc(3.9mm * var(--guide-scale)); line-height: 1.35;
+}
+.lg-mark { display: inline-block; min-width: 4.4mm; text-align: center; font-weight: 700; }
+
+/* ---- ポイント ---- */
+.points-box { flex: 1 1 auto; }
+.points-list { list-style: none; margin: 0; padding: 0; }
+.points-list li {
+  display: flex; align-items: baseline; gap: 1.4mm;
+  margin-bottom: 1.1mm; font-size: calc(3.2mm * var(--guide-scale)); line-height: 1.4;
+}
+.pt-num { font-size: calc(4.4mm * var(--guide-scale)); font-weight: 700; line-height: 1; flex: 0 0 auto; }
+
+/* 名前と本文を横に並べる。名前の幅を固定するので、
+   本文が2行目に回っても名前の下には入らず、本文の頭にそろう。 */
+.pt-tx {
+  display: flex;
+  align-items: baseline;
+  gap: 1.6mm;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.pt-name {
+  flex: 0 0 var(--pt-name-w);
+  letter-spacing: .06em;
+}
+.pt-body { flex: 1 1 auto; min-width: 0; }
+
+/* 書き換えられる文章（画面だけの目じるし。印刷では消える） */
+body.editing [data-tkey] {
+  cursor: text;
+  border-bottom: 0.25mm dashed #9a9a9a;
+}
+body.editing [data-tkey]:hover { background: #ececec; }
+[data-tkey]:focus {
+  outline: 0.3mm solid var(--accent);
+  outline-offset: 0.3mm;
+  background: #fff;
+}
+/* 空にしても行がつぶれず、クリックできる場所が残るように */
+body.editing [data-tkey]:empty::before {
+  content: "（文章を書く）";
+  opacity: .45;
+}
+
+/* ---- 参考動画の欄（お手本ページへのQRコード1つ） ---- */
+.video-box .box-body { flex: 1 1 auto; min-height: 0; }
+
+/* QRを左、読みかたを右に置く。1つになって横があいたぶん、
+   QRを大きくできる＝読み取りやすくなる */
+.qr-single {
+  display: flex;
+  align-items: center;
+  gap: 4mm;
+  height: 100%;
+}
+
+/* QRは正方形。大きいほど1マスが太くなり、スマホで読み取りやすい */
+.qr-frame {
+  width: var(--qr-size);
+  height: var(--qr-size);
+  flex: none;
+}
+.qr-frame svg { display: block; width: 100%; height: 100%; }
+.qr-empty { border: 0.4mm dashed var(--rule); border-radius: 1mm; }
+
+.qr-tx {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.qr-head {
+  font-weight: 700;
+  font-size: calc(3.6mm * var(--guide-scale));
+  line-height: 1.35;
+  margin-bottom: 1mm;
+}
+.qr-note {
+  font-size: calc(3.1mm * var(--guide-scale));
+  line-height: 1.45;
+}
+
+/* ============================================================
+ * 印刷
+ * ============================================================ */
+@page {
+  size: A4 landscape;
+  /* ★上の --page-w / --page-h と必ず同じ値にすること（297-15*2 / 210-15*2）。
+     6mm では紙の端ぎりぎりに罫線と枠が出ていたので、
+     一般的な書類の余白として 15mm にした。 */
+  margin: 15mm;
+}
+
+@media print {
+  html, body { background: #fff; }
+
+  .toolbar,
+  .notice { display: none !important; }
+
+  #pages { display: block; padding: 0; gap: 0; }
+
+  .sheet {
+    width: auto;
+    /* 印刷可能領域ぴったりだと余分なページが出ることがあるので少し余裕を持たせる */
+    /* ★画面と同じ高さにする。ここだけ別の値にしてはいけない。
+       以前は画面より 3mm 低く、画面では見えている枠の下線が
+       印刷では切れていた。安全代は --page-h 側に入れてある。 */
+    height: var(--page-h);
+    box-shadow: none;
+    break-after: page;
+    page-break-after: always;
+  }
+  .sheet:last-child { break-after: auto; page-break-after: auto; }
+
+  /* 編集用の装飾は出さない */
+  .cell { background: none !important; outline: none !important; }
+  .hit { background: none !important; }
+  [data-tkey] {
+    background: none !important;
+    outline: none !important;
+    border-bottom: 0 !important;
+  }
+  [data-tkey]:empty::before { content: none !important; }
+
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
